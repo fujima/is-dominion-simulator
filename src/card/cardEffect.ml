@@ -44,13 +44,26 @@ let onPlay card game =
 	   supply,
 	   numplayer, 
 	   turn)
-      | Laboratory ->
+      | Laboratory -> (* 書庫 *)
 	  let newdecks = ListUtil.change_to decks player (Util.repeat Deck.draw 2 (ListUtil.at decks player)) in
 	    (newdecks, 
-	     (phase, player, {action = limit.action + 1; money = limit.money + 3; buy = limit.buy}), 
+	     (phase, player, {action = limit.action + 1; money = limit.money; buy = limit.buy}), 
 	     supply, 
 	     numplayer, 
 	     turn)
+      | Festival -> (* 大市 *)
+	  (decks, 
+	   (phase, player, {action = limit.action + 2; money = limit.money + 2; buy = limit.buy + 1}), 
+	   supply,
+	   numplayer, 
+	   turn)
+      | Market   -> (* 市場 *)
+	  let newdecks = ListUtil.change_to decks player (Util.repeat Deck.draw 1 (ListUtil.at decks player)) in
+	  (newdecks, 
+	   (phase, player, {action = limit.action + 1; money = limit.money + 1; buy = limit.buy + 1}), 
+	   supply, 
+	   numplayer, 
+	   turn)
       | Estate
       | Duchy
       | Province

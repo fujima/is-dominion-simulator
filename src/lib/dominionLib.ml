@@ -20,7 +20,7 @@ module Phase =
 
 module Deck =
   struct
-    type t = { deck : Card.t list; hand : Card.t list; playing : Card.t list; trash : Card.t list }
+    type t = { deck : Card.t list; hand : Card.t list; playing : Card.t list; trash : Card.t list; aside : Card.t list}
     type info_t = {d : int; h : int; p : int; t : int}
     type hand_t = Card.t list
 
@@ -34,35 +34,66 @@ module Deck =
 	      {deck = xs;
 	       hand = [a; b; c; d; e];
 	       playing = [];
-	       trash = []}
+	       trash = [];
+               aside = []}
 	  | _ -> assert false
-
+           
     let rec draw set =
       match set.deck with
 	| [] -> begin 
 	    match set.trash with
-	      | [] -> {deck = []; hand = set.hand; playing = set.playing; trash = []}
+	      | [] -> {deck = []; hand = set.hand; playing = set.playing; trash = []; aside = set.aside}
 	      | xs -> draw {deck = ListUtil.shuffle set.trash; 
 			    hand = set.hand; 
 			    playing = set.playing; 
-			    trash = []}
+			    trash = [];
+                            aside = set.aside}
 	  end
-	| x::xs -> {deck = xs; hand = x::set.hand; playing = set.playing; trash = set.trash}
+	| x::xs -> {deck = xs; hand = x::set.hand; playing = set.playing; trash = set.trash; aside = set.aside}
 
+    (* 手札からプレイ *)
     let play set card =
       try 
 	let newhand = ListUtil.remove set.hand card in
-	  {deck = set.deck; hand = newhand; playing = card::set.playing; trash = set.trash}
+	  {deck = set.deck; hand = newhand; playing = card::set.playing; trash = set.trash; aside = set.aside}
       with _ -> assert false
 
+    (* 獲得 *)
     let obtain set card =
-      { deck = set.deck; hand = set.hand; playing = set.playing; trash = card::set.trash }
+      { deck = set.deck; hand = set.hand; playing = set.playing; trash = card::set.trash; aside = set.aside}
+
+    (* 手札に獲得 *)
+    let obtain_in_hand set card =
+      { deck = set.deck; hand = card::set.hand; playing = set.playing; trash = set.trash; aside = set.aside}
+
+    (* 破棄 *)
+    let trash set card =
+      try
+        let newhand = ListUtil.remove set.hand card in
+          {deck = set.deck; hand = newhand; playing = set.playing; trash = set.trash; aside = set.aside}
+      with _ -> assert false
+
+    (* デッキトップに置く *)
+    let put_on_top set card =
+      { deck = card::set.deck; hand = set.hand; playing = set.playing; trash = set.trash; aside = set.aside}
+
+    (* 手札から捨てる *)
+    let discard set card =
+      try
+        obtain (trash set card) card
+      with _ -> assert false
+
+    (* 手札からデッキトップに戻す *)
+    let return_to_top set card =
+      try
+        put_on_top (trash set card) card
+      with _ -> assert false
 
     let cleanup set =
       Util.repeat 
 	draw 
 	5 
-	{deck = set.deck; hand = []; playing = []; trash = set.trash @ set.hand @ set.playing}
+	{deck = set.deck; hand = []; playing = []; trash = set.trash @ set.hand @ set.playing @ set.aside; aside = []}
 
     let count_victory set =
       let rec count_victory' cards sum =

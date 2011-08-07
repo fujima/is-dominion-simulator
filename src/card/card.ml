@@ -10,6 +10,8 @@ type t =
   | Village
   | Woodcutter
   | Laboratory
+  | Festival
+  | Market
 
 
 module Cardtype =
@@ -35,6 +37,8 @@ let cost_of_card = function
   | Village  -> 3
   | Woodcutter -> 3
   | Laboratory -> 5
+  | Festival -> 5
+  | Market   -> 5
       
 let string_of_card = function
   | Copper   -> "Copper"
@@ -48,6 +52,8 @@ let string_of_card = function
   | Village  -> "Village"
   | Woodcutter -> "Woodcutter"
   | Laboratory -> "Laboratory"
+  | Festival -> "Festival"
+  | Market   -> "Market"
 
 let cardtype_of_card = function
   | Copper   -> Cardtype.Treasure 1
@@ -61,4 +67,5 @@ let cardtype_of_card = function
   | Village  -> Cardtype.Action
   | Woodcutter -> Cardtype.Action
   | Laboratory -> Cardtype.Action
-
+  | Festival -> Cardtype.Action
+  | Market   -> Cardtype.Action

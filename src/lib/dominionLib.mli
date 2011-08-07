@@ -8,6 +8,7 @@ module Deck :
       hand : Card.t list;
       playing : Card.t list;
       trash : Card.t list;
+      aside : Card.t list;
     }
     type info_t = { d : int; h : int; p : int; t : int; }
     type hand_t = Card.t list
@@ -15,6 +16,11 @@ module Deck :
     val draw : t -> t
     val play : t -> Card.t -> t
     val obtain : t -> Card.t -> t
+    val obtain_in_hand : t -> Card.t -> t
+    val trash : t -> Card.t -> t
+    val put_on_top : t -> Card.t -> t
+    val discard : t -> Card.t -> t
+    val return_to_top : t -> Card.t -> t
     val cleanup : t -> t
     val count_victory : t -> int
     val get_hand : t -> Card.t list
