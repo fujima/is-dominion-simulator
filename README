@@ -1,0 +1,30 @@
+--------------------
+how to compose AI
+--------------------
+see:
+src/ai/
+
+モジュール一つがAI１つに対応します
+Ai.Interfaceシグネチャを満たすようにしてください
+
+--------------------
+how to run AI
+--------------------
+see: src/server.ml
+change two lines after (* AI configuration *)
+module AI0 = ...
+module AI1 = ...
+
+then
+$ make
+$ ./run.sh 200
+
+--------------------
+how to add card
+--------------------
+modify card/card.ml, card/cardEffect.ml lib/dominionLib.ml
+前２つは見ればわかる
+最後のはmodule Supplyのcreateをいじってください
+
+see:
+grep -r Silver *
