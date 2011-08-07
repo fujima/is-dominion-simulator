@@ -40,10 +40,17 @@ let onPlay card game =
 	   turn)
       | Woodcutter -> (* 木こり *)
 	  (decks, 
-	   (phase, player, {action = limit.action; money = limit.money + 1; buy = limit.buy + 1}), 
+	   (phase, player, {action = limit.action; money = limit.money + 2; buy = limit.buy + 1}), 
 	   supply,
 	   numplayer, 
 	   turn)
+      | Laboratory ->
+	  let newdecks = ListUtil.change_to decks player (Util.repeat Deck.draw 2 (ListUtil.at decks player)) in
+	    (newdecks, 
+	     (phase, player, {action = limit.action + 1; money = limit.money + 3; buy = limit.buy}), 
+	     supply, 
+	     numplayer, 
+	     turn)
       | Estate
       | Duchy
       | Province

@@ -9,6 +9,8 @@ type t =
   | Smithy
   | Village
   | Woodcutter
+  | Laboratory
+
 
 module Cardtype =
   struct
@@ -32,6 +34,7 @@ let cost_of_card = function
   | Smithy   -> 4
   | Village  -> 3
   | Woodcutter -> 3
+  | Laboratory -> 5
       
 let string_of_card = function
   | Copper   -> "Copper"
@@ -44,6 +47,7 @@ let string_of_card = function
   | Smithy    -> "Smithy"
   | Village  -> "Village"
   | Woodcutter -> "Woodcutter"
+  | Laboratory -> "Laboratory"
 
 let cardtype_of_card = function
   | Copper   -> Cardtype.Treasure 1
@@ -56,3 +60,5 @@ let cardtype_of_card = function
   | Smithy   -> Cardtype.Action
   | Village  -> Cardtype.Action
   | Woodcutter -> Cardtype.Action
+  | Laboratory -> Cardtype.Action
+
