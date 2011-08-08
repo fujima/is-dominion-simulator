@@ -107,7 +107,16 @@ module Deck =
 		  | _         -> sum
 	      end
       in
-	count_victory' (set.deck @ set.hand @ set.playing @ set.trash) 0
+      let rec count_gardens cards sum =
+        match cards with
+          | [] -> sum
+          | x::xs ->
+              count_gardens xs begin
+                if x = Gardens then sum + 1 else sum
+              end
+      in
+      let all_cards = (set.deck @ set.hand @ set.playing @ set.trash @ set.aside) in
+	    (count_victory' all_cards 0) + (List.length all_cards) / 10 * (count_gardens all_cards 0)
       
     let get_hand set =
       set.hand
@@ -146,7 +155,14 @@ module Supply =
        Duchy   ,  8;
        Province,  8;
        Curse   , 10;
-       Smithy  , 10]
+       Smithy  , 10;
+       Village , 10;
+       Woodcutter, 10;
+       Laboratory, 10;
+       Festival, 10;
+       Market, 10;
+       Gardens, 12;
+       ]
 
     let rec exist supply card =
       match supply with
