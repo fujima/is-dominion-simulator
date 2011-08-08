@@ -7,9 +7,10 @@ exception End_of_Game of Deck.t list
 
 (* AI configuration *)
 
-module AI0 = Fujima.LikeDuchy_too;;
-module AI1 = Fujima.Pikachu;;
+module AI1 = Yano.GardenChuu;;
+module AI0 = Fujima.Pikachu;;
 
+let verbose = ref false
 
 let ask player phase limit decks supply =
   let hand = Deck.get_hand (ListUtil.at decks player) in
@@ -45,9 +46,43 @@ let print_line () =
 let print_hand decks player =
   print_endline (Deck.string_of_hand (ListUtil.at decks player))
 
-let print_info decks player =
-  print_endline ("Player" ^ (string_of_int player) ^ " [" ^ (get_ai_name player) ^ "]");
-  print_line ()
+let print_info (decks, (_, player, _), _, _, turns) =
+  if !verbose then
+    begin
+      print_endline ("Turn " ^ (string_of_int turns));
+      print_endline ("Player" ^ (string_of_int player) ^ " [" ^ (get_ai_name player) ^ "]");
+      print_line ()
+    end
+  else
+    ()
+
+let print_status (decks, (phase, player, limit), _, _, _) =
+  if !verbose then
+    match phase with
+      | Phase.Cleanup ->
+          print_endline "  Clean up\n";
+      | Phase.Action ->
+          print_hand decks player;
+      | Phase.Purchase ->
+          print_endline ("Coin: "^(string_of_int limit.money));
+      | _ -> ()
+    else
+      ()
+
+let print_play phase card =
+  if !verbose then
+    match phase with
+      | Phase.Cleanup ->
+          print_endline "";
+      | Phase.Action ->
+          print_endline ("  Action   - " ^ (Card.string_of_card card));
+      | Phase.Purchase ->
+          print_endline ("  buy      - " ^ (Card.string_of_card card));
+      | Phase.Treasure ->
+          print_endline ("  Treasure - " ^ (Card.string_of_card card));
+    else
+      ()
+      
 
 let get_args () =
   let ret = ref false in
@@ -55,30 +90,19 @@ let get_args () =
       if Sys.argv.(i) = "-v" then ret := true
     done;
     !ret
-
+  
 let _ =
   Random.self_init ();
   AI0.init ();
   AI1.init ();
 
   let options = get_args () in
-  let verbose = options in
   let numplayer = 2 in
   let deck0 = Deck.init_deck () in
   let deck1 = Deck.init_deck () in
     let rec loop game =
+      print_status game;
       let (decks, (phase, player, limit), supply, numplayer, turn) = game in
-        if verbose then
-          begin
-            match phase with
-              | Phase.Cleanup ->
-                  print_endline "";
-              | Phase.Action ->
-                  print_hand decks player;
-              | Phase.Purchase ->
-                  print_endline ("Coin: "^(string_of_int limit.money));
-              | _ -> ();
-          end;
 	if phase = Phase.Cleanup then
 	  if Supply.endgame supply || turn >= 100 then
 	    raise (End_of_Game decks)
@@ -89,25 +113,26 @@ let _ =
 		player 
 		(Deck.cleanup (ListUtil.at decks player))
 	    in
-	    let nextplayer = (player + 1) mod numplayer in
-	      if verbose then print_info decks nextplayer;
-	      loop (newdecks,
-		    ((Phase.next phase), 
-		     nextplayer, 
-		     {action = 1; money = 0; buy = 1}), 
-		    supply,
-		    numplayer,
-		    turn + 1)
+	    let newgame =
+		  (newdecks,
+		   ((Phase.next phase), 
+		    (player + 1) mod numplayer, 
+		    {action = 1; money = 0; buy = 1}), 
+		   supply,
+		   numplayer,
+		   turn + 1)
+	    in
+	      print_info newgame;
+	      loop newgame
 	else
 	  match ask player phase limit decks supply with
 	    | None ->
 	        loop (decks, (Phase.next phase, player, limit), supply, numplayer, turn)
 	    | Some card ->
+	        print_play phase card;
 	        begin
 		  match phase with
 		    | Phase.Action ->
-		        if verbose then
-		          print_endline ("  play - " ^ (Card.string_of_card card));
 			if limit.action = 0 then assert false
 			else
 			  begin
@@ -144,8 +169,6 @@ let _ =
 			    | _ -> assert false
 			end
 		    | Phase.Purchase ->
-		        if verbose then
-		          print_endline ("  buy  - " ^ (Card.string_of_card card));
 			if limit.buy = 0 || 
 			   not (Supply.exist supply card) || 
 			   (cost_of_card card) > limit.money
@@ -169,13 +192,18 @@ let _ =
 		end
     in
       try
-	loop ([deck0; deck1], 
-	      (Phase.Action, 
-	       0, 
-	       {action = 1; money = 0; buy = 1}), 
-	      (Supply.create numplayer),
-	      numplayer,
-	      0)
+        verbose := options;
+        let initial_game =          
+	      ([deck0; deck1], 
+	       (Phase.Action, 
+	        0, 
+	        {action = 1; money = 0; buy = 1}), 
+	       (Supply.create numplayer),
+	       numplayer,
+	       0)
+        in
+          print_info initial_game;
+          loop initial_game
       with End_of_Game decks ->
 	
 	let rec print_points points iter =

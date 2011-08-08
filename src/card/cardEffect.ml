@@ -64,6 +64,7 @@ let onPlay card game =
 	   supply, 
 	   numplayer, 
 	   turn)
+      | Gardens
       | Estate
       | Duchy
       | Province
