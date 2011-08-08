@@ -44,7 +44,7 @@ let onPlay card game =
 	   supply,
 	   numplayer, 
 	   turn)
-      | Laboratory -> (* 書庫 *)
+      | Laboratory -> (* 研究所 *)
 	  let newdecks = ListUtil.change_to decks player (Util.repeat Deck.draw 2 (ListUtil.at decks player)) in
 	    (newdecks, 
 	     (phase, player, {action = limit.action + 1; money = limit.money; buy = limit.buy}), 
