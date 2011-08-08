@@ -1,1 +1,4 @@
 *~
+*.cmi
+*.cmo
+src/a

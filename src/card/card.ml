@@ -13,7 +13,9 @@ type t =
   | Festival
   | Market
   | Gardens
-
+  | Council_room
+  | Witch
+  | Moneylender
 
 module Cardtype =
   struct
@@ -41,6 +43,9 @@ let cost_of_card = function
   | Festival -> 5
   | Market   -> 5
   | Gardens  -> 4
+  | Council_room -> 5
+  | Witch -> 5
+  | Moneylender -> 4
       
 let string_of_card = function
   | Copper   -> "Copper"
@@ -57,6 +62,9 @@ let string_of_card = function
   | Festival -> "Festival"
   | Market   -> "Market"
   | Gardens  -> "Gardens"
+  | Council_room -> "Council room"
+  | Witch -> "Witch"
+  | Moneylender -> "Moneylender"
 
 let cardtype_of_card = function
   | Copper   -> Cardtype.Treasure 1
@@ -73,3 +81,6 @@ let cardtype_of_card = function
   | Festival -> Cardtype.Action
   | Market   -> Cardtype.Action
   | Gardens  -> Cardtype.Victory 0
+  | Council_room -> Cardtype.Action
+  | Witch -> Cardtype.Action
+  | Moneylender -> Cardtype.Action

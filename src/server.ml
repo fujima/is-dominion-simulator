@@ -7,7 +7,7 @@ exception End_of_Game of Deck.t list
 
 (* AI configuration *)
 
-module AI1 = Yano.GardenChuu;;
+module AI1 = Fujima.Pikachu;;
 module AI0 = Fujima.Pikachu;;
 
 let verbose = ref false

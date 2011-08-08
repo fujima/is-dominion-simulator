@@ -64,6 +64,45 @@ let onPlay card game =
 	   supply, 
 	   numplayer, 
 	   turn)
+      | Council_room -> (* 議事堂 *)
+	  let (newdecks, _) = List.fold_left begin
+	    fun (lst, i) deck -> 
+	      (lst @ [(Util.repeat Deck.draw (if i = player then 4 else 1) (ListUtil.at decks i))], i+1)
+	  end ([], 0) decks in
+	    (newdecks, 
+	     (phase, player, {action = limit.action; money = limit.money; buy = limit.buy + 1}), 
+	     supply, 
+	     numplayer, 
+	     turn)
+      | Witch -> (* 魔女 *)
+	  let (newdecks, _) = List.fold_left begin
+	    fun (lst, i) deck -> 
+	      (lst @ 
+		 [if i = player then 
+		    Util.repeat Deck.draw 2 (ListUtil.at decks i) 
+		  else
+		    Deck.obtain (ListUtil.at decks i) Curse
+		 ], 
+	       i+1)
+	  end ([], 0) decks in
+	    (newdecks, 
+	     (phase, player, {action = limit.action; money = limit.money; buy = limit.buy}), 
+	     supply, 
+	     numplayer, 
+	     turn)
+      | Moneylender -> (* 金貸し *)
+	  let (newdecks, plusmoney) = 
+	    begin
+	      try
+		ListUtil.change_to decks player (Deck.trash (ListUtil.at decks player) Copper), 3
+	      with Invalid_argument _ -> decks, 0
+	    end
+	  in
+	    (newdecks, 
+	     (phase, player, {action = limit.action; money = limit.money + plusmoney; buy = limit.buy}), 
+	     supply, 
+	     numplayer, 
+	     turn)
       | Gardens
       | Estate
       | Duchy

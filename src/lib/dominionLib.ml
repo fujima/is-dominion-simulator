@@ -66,12 +66,12 @@ module Deck =
     let obtain_in_hand set card =
       { deck = set.deck; hand = card::set.hand; playing = set.playing; trash = set.trash; aside = set.aside}
 
-    (* 破棄 *)
+    (* 手札から破棄 *)
     let trash set card =
       try
         let newhand = ListUtil.remove set.hand card in
           {deck = set.deck; hand = newhand; playing = set.playing; trash = set.trash; aside = set.aside}
-      with _ -> assert false
+      with e -> raise e 
 
     (* デッキトップに置く *)
     let put_on_top set card =
