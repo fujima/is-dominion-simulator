@@ -51,7 +51,7 @@ let onPlay card game =
 	     supply, 
 	     numplayer, 
 	     turn)
-      | Festival -> (* 大市 *)
+      | Festival -> (* 祝祭 *)
 	  (decks, 
 	   (phase, player, {action = limit.action + 2; money = limit.money + 2; buy = limit.buy + 1}), 
 	   supply,

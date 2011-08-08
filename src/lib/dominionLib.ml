@@ -125,6 +125,13 @@ module Deck =
       ^ "hand: " ^ (string_of_hand set.hand) ^ "\n"
       ^ "trash: " ^ (string_of_int (List.length set.trash))
 
+    let string_of_hand set =
+      let rec string_of_hand = function
+	    | []    -> ""
+	    | x::xs -> (string_of_card x) ^ ", " ^ string_of_hand xs
+      in
+        "hand: " ^ (string_of_hand set.hand)
+
   end;;
 
 module Supply =

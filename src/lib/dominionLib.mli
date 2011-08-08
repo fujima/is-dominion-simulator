@@ -26,6 +26,7 @@ module Deck :
     val get_hand : t -> Card.t list
     val toInfo : t -> info_t
     val toString : t -> string
+    val string_of_hand : t -> string
   end
 module Supply :
   sig

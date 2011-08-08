@@ -33,15 +33,52 @@ let play card game =
 		 turn) in
   CardEffect.onPlay card newgame
 
+let get_ai_name player =
+  match player with
+    | 0 -> AI0.name
+    | 1 -> AI1.name
+    | _ -> assert false
+
+let print_line () =
+  print_endline "--------------------------------------------------"
+
+let print_hand decks player =
+  print_endline (Deck.string_of_hand (ListUtil.at decks player))
+
+let print_info decks player =
+  print_endline ("Player" ^ (string_of_int player) ^ " [" ^ (get_ai_name player) ^ "]");
+  print_line ()
+
+let get_args () =
+  let ret = ref false in
+    for i = 0 to Array.length Sys.argv - 1 do
+      if Sys.argv.(i) = "-v" then ret := true
+    done;
+    !ret
+
 let _ =
   Random.self_init ();
   AI0.init ();
   AI1.init ();
+
+  let options = get_args () in
+  let verbose = options in
   let numplayer = 2 in
   let deck0 = Deck.init_deck () in
   let deck1 = Deck.init_deck () in
     let rec loop game =
       let (decks, (phase, player, limit), supply, numplayer, turn) = game in
+        if verbose then
+          begin
+            match phase with
+              | Phase.Cleanup ->
+                  print_endline "";
+              | Phase.Action ->
+                  print_hand decks player;
+              | Phase.Purchase ->
+                  print_endline ("Coin: "^(string_of_int limit.money));
+              | _ -> ();
+          end;
 	if phase = Phase.Cleanup then
 	  if Supply.endgame supply || turn >= 100 then
 	    raise (End_of_Game decks)
@@ -52,20 +89,25 @@ let _ =
 		player 
 		(Deck.cleanup (ListUtil.at decks player))
 	    in
+	    let nextplayer = (player + 1) mod numplayer in
+	      if verbose then print_info decks nextplayer;
 	      loop (newdecks,
 		    ((Phase.next phase), 
-		     (player + 1) mod numplayer, 
+		     nextplayer, 
 		     {action = 1; money = 0; buy = 1}), 
 		    supply,
 		    numplayer,
 		    turn + 1)
 	else
 	  match ask player phase limit decks supply with
-	    | None -> loop (decks, (Phase.next phase, player, limit), supply, numplayer, turn)
+	    | None ->
+	        loop (decks, (Phase.next phase, player, limit), supply, numplayer, turn)
 	    | Some card ->
-		begin
+	        begin
 		  match phase with
 		    | Phase.Action ->
+		        if verbose then
+		          print_endline ("  play - " ^ (Card.string_of_card card));
 			if limit.action = 0 then assert false
 			else
 			  begin
@@ -93,7 +135,7 @@ let _ =
 				(play
 				   card
 				   (decks,
-				    (Phase.Action,
+				    (Phase.Treasure,
 				     player, 
 				     {action = limit.action; money = limit.money; buy = limit.buy}),
 				    supply,
@@ -102,6 +144,8 @@ let _ =
 			    | _ -> assert false
 			end
 		    | Phase.Purchase ->
+		        if verbose then
+		          print_endline ("  buy  - " ^ (Card.string_of_card card));
 			if limit.buy = 0 || 
 			   not (Supply.exist supply card) || 
 			   (cost_of_card card) > limit.money
@@ -113,7 +157,7 @@ let _ =
 				     decks
 				     player
 				     newdeck),
-				  (Phase.Treasure,
+				  (Phase.Purchase,
 				   player,
 				   { action = limit.action; 
 				     money = limit.money - (cost_of_card card);

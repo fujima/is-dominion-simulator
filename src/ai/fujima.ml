@@ -3,6 +3,8 @@ open DominionLib
 
 module ProvinceLover : Ai.Interface =
   struct
+    let name = "ProvinceLover"
+
     let init () =
       ()
 
@@ -37,6 +39,8 @@ module ProvinceLover : Ai.Interface =
 
 module LikeDuchy_too : Ai.Interface =
   struct
+
+    let name = "LikeDuchytoo"
 
     let init () =
       ()
@@ -73,6 +77,9 @@ module LikeDuchy_too : Ai.Interface =
 
 module Pikachu : Ai.Interface =
   struct
+
+    let name = "Pikachu"
+
     let has_smithy = ref false
 
     let init () =
