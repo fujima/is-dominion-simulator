@@ -1,14 +1,14 @@
 
 open Card
 open DominionLib
-
+open DominionIOLib
 
 exception End_of_Game of Deck.t list
 
 (* AI configuration *)
 
-module AI0 = Kozai.DukeLover;;
-module AI1 = Fujima.Pikachu;;
+let ai0 = new Fujima.likeDuchy_too;;
+let ai1 = new Fujima.pikachu;;
 
 let verbose = ref false
 
@@ -17,8 +17,8 @@ let ask player phase limit decks supply =
   let deckinfos = List.map Deck.toInfo decks in
     begin
       match player with
-	| 0 -> AI0.select_card
-	| 1 -> AI1.select_card
+	| 0 -> ai0#select_card
+	| 1 -> ai1#select_card
 	| _ -> assert false
     end phase limit deckinfos hand supply
 
@@ -36,53 +36,9 @@ let play card game =
 
 let get_ai_name player =
   match player with
-    | 0 -> AI0.name
-    | 1 -> AI1.name
-    | _ -> assert false
-
-let print_line () =
-  print_endline "--------------------------------------------------"
-
-let print_hand decks player =
-  print_endline (Deck.string_of_hand (ListUtil.at decks player))
-
-let print_info (decks, (_, player, _), _, _, turns) =
-  if !verbose then
-    begin
-      print_endline ("Turn " ^ (string_of_int turns));
-      print_endline ("Player" ^ (string_of_int player) ^ " [" ^ (get_ai_name player) ^ "]");
-      print_line ()
-    end
-  else
-    ()
-
-let print_status (decks, (phase, player, limit), _, _, _) =
-  if !verbose then
-    match phase with
-      | Phase.Cleanup ->
-          print_endline "  Clean up\n";
-      | Phase.Action ->
-          print_hand decks player;
-      | Phase.Purchase ->
-          print_endline ("Coin: "^(string_of_int limit.money));
-      | _ -> ()
-    else
-      ()
-
-let print_play phase card =
-  if !verbose then
-    match phase with
-      | Phase.Cleanup ->
-          print_endline "";
-      | Phase.Action ->
-          print_endline ("  Action   - " ^ (Card.string_of_card card));
-      | Phase.Purchase ->
-          print_endline ("  buy      - " ^ (Card.string_of_card card));
-      | Phase.Treasure ->
-          print_endline ("  Treasure - " ^ (Card.string_of_card card));
-    else
-      ()
-      
+    | 0 -> ai0#name
+    | 1 -> ai1#name
+    | _ -> assert false      
 
 let get_args () =
   let ret = ref false in
@@ -93,15 +49,15 @@ let get_args () =
   
 let _ =
   Random.self_init ();
-  AI0.init ();
-  AI1.init ();
+  ai0#init ();
+  ai1#init ();
 
   let options = get_args () in
   let numplayer = 2 in
   let deck0 = Deck.init_deck () in
   let deck1 = Deck.init_deck () in
     let rec loop game =
-      print_status game;
+      (if !verbose then print_status game);
       let (decks, (phase, player, limit), supply, numplayer, turn) = game in
 	if phase = Phase.Cleanup then
 	  if Supply.endgame supply || turn >= 100 then
@@ -113,23 +69,24 @@ let _ =
 		player 
 		(Deck.cleanup (ListUtil.at decks player))
 	    in
+	    let nextplayer = (player + 1) mod numplayer in
 	    let newgame =
 		  (newdecks,
 		   ((Phase.next phase), 
-		    (player + 1) mod numplayer, 
+		    nextplayer, 
 		    {action = 1; money = 0; buy = 1}), 
 		   supply,
 		   numplayer,
 		   turn + 1)
 	    in
-	      print_info newgame;
+	      (if !verbose then print_info newgame (get_ai_name nextplayer));
 	      loop newgame
 	else
 	  match ask player phase limit decks supply with
 	    | None ->
 	        loop (decks, (Phase.next phase, player, limit), supply, numplayer, turn)
 	    | Some card ->
-	        print_play phase card;
+	        (if !verbose then print_play phase card);
 	        begin
 		  match phase with
 		    | Phase.Action ->
@@ -202,8 +159,10 @@ let _ =
 	       numplayer,
 	       0)
         in
-          print_info initial_game;
-          loop initial_game
+	  begin
+            if !verbose then print_info initial_game (get_ai_name 0);
+	    loop initial_game
+	  end
       with End_of_Game decks ->
 	
 	let rec print_points points iter =

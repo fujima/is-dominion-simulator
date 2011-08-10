@@ -1,14 +1,14 @@
 open Card
 open DominionLib
 
-module ProvinceLover : Ai.Interface =
-  struct
-    let name = "ProvinceLover"
+class provinceLover : Ai.interface =
+  object
+    method name = "ProvinceLover"
 
-    let init () =
+    method init () =
       ()
 
-    let select_card phase limit deckinfos myhand supply =
+    method select_card phase limit deckinfos myhand supply =
       match phase with
 	| Phase.Action -> None
 	| Phase.Treasure -> 
@@ -37,15 +37,15 @@ module ProvinceLover : Ai.Interface =
 
   end
 
-module LikeDuchy_too : Ai.Interface =
-  struct
+class likeDuchy_too : Ai.interface =
+  object
 
-    let name = "LikeDuchytoo"
+    method name = "LikeDuchytoo"
 
-    let init () =
+    method init () =
       ()
 
-    let select_card phase limit deckinfos myhand supply =
+    method select_card phase limit deckinfos myhand supply =
       match phase with
 	| Phase.Action -> None
 	| Phase.Treasure -> 
@@ -75,17 +75,17 @@ module LikeDuchy_too : Ai.Interface =
 	    
   end
 
-module Pikachu : Ai.Interface =
-  struct
+class pikachu : Ai.interface =
+  object
 
-    let name = "Pikachu"
+    val mutable has_smithy = false
 
-    let has_smithy = ref false
+    method name = "Pikachu"
 
-    let init () =
-      has_smithy := false
+    method init () =
+      has_smithy <- false
 
-    let select_card phase limit deckinfos myhand supply =
+    method select_card phase limit deckinfos myhand supply =
       match phase with
 	| Phase.Action -> 
 	    if limit.action = 0 then None else (try let act = List.find (fun x -> x = Smithy) myhand in Some act with Not_found -> None)
@@ -108,8 +108,8 @@ module Pikachu : Ai.Interface =
 	      else match limit.money with
 		| 0 | 1 | 2 -> None
 		| 3         -> Some Silver
-		| 4         -> if !has_smithy then Some Silver else (has_smithy := true; Some Smithy)
-		| 5         -> if Supply.lookup supply Province < 5 then Some Duchy else if !has_smithy then Some Silver else (has_smithy := true; Some Smithy)
+		| 4         -> if has_smithy then Some Silver else (has_smithy <- true; Some Smithy)
+		| 5         -> if Supply.lookup supply Province < 5 then Some Duchy else if has_smithy then Some Silver else (has_smithy <- true; Some Smithy)
 		| 6 | 7     -> Some Gold
 		| _         -> Some Province
 	    end
