@@ -33,3 +33,8 @@ let rec remove l value =
   match l with
     | [] -> invalid_arg "not found"
     | x::xs -> if x = value then xs else x::(remove xs value)
+
+let rec nth_map f l n =
+  match l with
+      [] -> invalid_arg "index out of bounds"
+    | x::xs -> if n = 0 then (f x)::xs else x::(nth_map f l (n-1))

@@ -25,14 +25,14 @@ let onPlay card game =
 	   numplayer, 
 	   turn)
       | Smithy -> (* 鍛冶屋 *)
-	  let newdecks = ListUtil.change_to decks player (Util.repeat Deck.draw 3 (ListUtil.at decks player)) in
+	  let newdecks = ListUtil.nth_map (Util.repeat Deck.draw 3) decks player in
 	  (newdecks, 
 	   (phase, player, {action = limit.action; money = limit.money; buy = limit.buy}), 
 	   supply, 
 	   numplayer, 
 	   turn)
       | Village -> (* 村 *)
-	  let newdecks = ListUtil.change_to decks player (Util.repeat Deck.draw 1 (ListUtil.at decks player)) in
+	  let newdecks = ListUtil.nth_map Deck.draw decks player in
 	  (newdecks, 
 	   (phase, player, {action = limit.action + 2; money = limit.money; buy = limit.buy}), 
 	   supply, 
@@ -45,7 +45,7 @@ let onPlay card game =
 	   numplayer, 
 	   turn)
       | Laboratory -> (* 研究所 *)
-	  let newdecks = ListUtil.change_to decks player (Util.repeat Deck.draw 2 (ListUtil.at decks player)) in
+	  let newdecks = ListUtil.nth_map (Util.repeat Deck.draw 2) decks player in
 	    (newdecks, 
 	     (phase, player, {action = limit.action + 1; money = limit.money; buy = limit.buy}), 
 	     supply, 
@@ -58,7 +58,7 @@ let onPlay card game =
 	   numplayer, 
 	   turn)
       | Market   -> (* 市場 *)
-	  let newdecks = ListUtil.change_to decks player (Util.repeat Deck.draw 1 (ListUtil.at decks player)) in
+	  let newdecks = ListUtil.nth_map Deck.draw decks player in
 	  (newdecks, 
 	   (phase, player, {action = limit.action + 1; money = limit.money + 1; buy = limit.buy + 1}), 
 	   supply, 
@@ -67,7 +67,7 @@ let onPlay card game =
       | Council_room -> (* 議事堂 *)
 	  let (newdecks, _) = List.fold_left begin
 	    fun (lst, i) deck -> 
-	      (lst @ [(Util.repeat Deck.draw (if i = player then 4 else 1) (ListUtil.at decks i))], i+1)
+	      (lst @ [(Util.repeat Deck.draw (if i = player then 4 else 1) (List.nth decks i))], i+1)
 	  end ([], 0) decks in
 	    (newdecks, 
 	     (phase, player, {action = limit.action; money = limit.money; buy = limit.buy + 1}), 
@@ -81,7 +81,7 @@ let onPlay card game =
 		 [if i = player then 
 		    Util.repeat Deck.draw 2 (ListUtil.at decks i) 
 		  else
-		    Deck.obtain (ListUtil.at decks i) Curse
+		    Deck.obtain (List.nth decks i) Curse
 		 ], 
 	       i+1)
 	  end ([], 0) decks in
@@ -94,7 +94,7 @@ let onPlay card game =
 	  let (newdecks, plusmoney) = 
 	    begin
 	      try
-		ListUtil.change_to decks player (Deck.trash (ListUtil.at decks player) Copper), 3
+		(ListUtil.nth_map (fun x -> Deck.trash x Copper) decks player), 3
 	      with Invalid_argument _ -> decks, 0
 	    end
 	  in
