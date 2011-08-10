@@ -104,6 +104,7 @@ let onPlay card game =
 	     numplayer, 
 	     turn)
       | Gardens
+      | Duke
       | Estate
       | Duchy
       | Province

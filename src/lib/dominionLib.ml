@@ -1,4 +1,3 @@
-
 open Card
 
 type limit = {action : int; money : int; buy : int}
@@ -115,9 +114,21 @@ module Deck =
                 if x = Gardens then sum + 1 else sum
               end
       in
+      let rec count_duke cards (duke_num,duchy_num) =
+        match cards with
+          | [] -> duke_num * duchy_num
+          | x::xs ->
+              count_duke xs begin
+                if x = Duke then (duke_num + 1,duchy_num) 
+	else if x = Duchy then (duke_num,duchy_num + 1)
+	else (duke_num,duchy_num)		  
+              end
+      in
       let all_cards = (set.deck @ set.hand @ set.playing @ set.trash @ set.aside) in
-	    (count_victory' all_cards 0) + (List.length all_cards) / 10 * (count_gardens all_cards 0)
-      
+	(count_victory' all_cards 0) + (List.length all_cards) / 10 * (count_gardens all_cards 0)
+	  + (count_duke all_cards (0,0))
+  
+	      
     let get_hand set =
       set.hand
 
@@ -161,7 +172,8 @@ module Supply =
        Laboratory, 10;
        Festival, 10;
        Market, 10;
-       Gardens, 12;
+       Gardens, 8;
+       Duke, 8;
        ]
 
     let rec exist supply card =
