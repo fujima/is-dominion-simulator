@@ -7,7 +7,7 @@ exception End_of_Game of Deck.t list
 
 (* AI configuration *)
 
-let ai0 = new Fujima.likeDuchy_too;;
+let ai0 = new Yano.gardenChuu;;
 let ai1 = new Fujima.pikachu;;
 
 let verbose = ref false

@@ -1,17 +1,16 @@
 open Card
 open DominionLib
 
-module Fushigidane : Ai.Interface =
-  struct
+class fushigidane : Ai.interface =
+  object
+    method name = "Fushigidane"
 
-    let name = "Fushigidane"
+    val mutable num_smithy = 0
 
-    let num_smithy = ref 0
+    method init () =
+      num_smithy <- 0
 
-    let init () =
-      num_smithy := 0
-
-    let select_card phase limit deckinfos myhand supply =
+    method select_card phase limit deckinfos myhand supply =
       match phase with
 	| Phase.Action -> 
 	    if limit.action = 0 then None else
@@ -45,7 +44,7 @@ module Fushigidane : Ai.Interface =
 		| 0 | 1     -> None
 		| 2         -> if Supply.lookup supply Province < 4 then Some Estate else None
 		| 3         -> if Supply.lookup supply Province < 3 then Some Estate else Some Silver
-		| 4         -> if Supply.lookup supply Province < 3 then Some Estate else if !num_smithy < 3 then (num_smithy := !num_smithy + 1;Some Smithy) else Some Silver
+		| 4         -> if Supply.lookup supply Province < 3 then Some Estate else if num_smithy < 3 then (num_smithy <- num_smithy + 1;Some Smithy) else Some Silver
 		| 5         -> if Supply.lookup supply Province < 5 then Some Duchy else Some Festival
 		| 6 | 7     -> if Supply.lookup supply Province < 4 then Some Duchy else Some Gold
 		| _         -> Some Province
@@ -54,17 +53,17 @@ module Fushigidane : Ai.Interface =
 	    
   end
 
-module GardenChuu : Ai.Interface =
-  struct
+class gardenChuu : Ai.interface =
+  object
 
-    let name = "GardenChuu"
+    method name = "GardenChuu"
 
-    let num_woodcutter = ref 0
+    val mutable num_woodcutter = 0
 
-    let init () =
-      num_woodcutter := 0
+    method init () =
+      num_woodcutter <- 0
 
-    let select_card phase limit deckinfos myhand supply =
+    method select_card phase limit deckinfos myhand supply =
       match phase with
 	| Phase.Action -> 
 	    if limit.action = 0 then None else
@@ -94,8 +93,8 @@ module GardenChuu : Ai.Interface =
 	      else match limit.money with
 		| 0 | 1     -> if Supply.lookup supply Province < 7 then Some Copper else None
 		| 2         -> if Supply.lookup supply Province < 7 then Some Estate else None
-		| 3         -> if Supply.lookup supply Province < 7 then Some Estate else if !num_woodcutter < 5 then (num_woodcutter := !num_woodcutter + 1; Some Woodcutter) else Some Silver
-		| 4         -> if Supply.lookup supply Province < 8 && Supply.lookup supply Gardens > 0 then Some Gardens else if !num_woodcutter < 5 then (num_woodcutter := !num_woodcutter + 1; Some Woodcutter) else Some Silver
+		| 3         -> if Supply.lookup supply Province < 7 then Some Estate else if num_woodcutter < 5 then (num_woodcutter <- num_woodcutter + 1; Some Woodcutter) else Some Silver
+		| 4         -> if Supply.lookup supply Province < 8 && Supply.lookup supply Gardens > 0 then Some Gardens else if num_woodcutter < 5 then (num_woodcutter <- num_woodcutter + 1; Some Woodcutter) else Some Silver
 		| 5         -> if Supply.lookup supply Province < 5 then (if Supply.lookup supply Gardens > 0 then Some Gardens else Some Duchy) else Some Market
 		| 6 | 7     -> if Supply.lookup supply Province < 5 then (if Supply.lookup supply Gardens > 0 then Some Gardens else Some Duchy) else Some Market
 		| _         -> Some Province
