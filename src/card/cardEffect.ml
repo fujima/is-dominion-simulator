@@ -3,7 +3,7 @@
 open Card
 open DominionLib
 
-let onPlay card game =
+let takeEffect card game =
   let (decks, (phase, player, limit), supply, numplayer, turn) = game in
     match card with
       | Copper ->
@@ -103,9 +103,17 @@ let onPlay card game =
 	     supply, 
 	     numplayer, 
 	     turn)
-      | Gardens
-      | Duke
-      | Estate
-      | Duchy
-      | Province
-      | Curse -> assert false
+      | _ -> raise Card_Not_Playable
+
+let onPlay card game =
+  let (decks, (phase, player, limit), supply, numplayer, turn) = game in
+    try
+      if phase = Phase.Action then
+        begin
+          if limit.action = 0 then raise Action_Limit_Exceeded
+          else takeEffect card (decks, (phase, player, {action = limit.action - 1; money = limit.money; buy = limit.buy}), supply, numplayer, turn)
+        end
+      else
+        takeEffect card game
+    with
+      | e -> raise e

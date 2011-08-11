@@ -23,16 +23,19 @@ let ask player phase limit decks supply =
     end phase limit deckinfos hand supply
 
 let play card game =
-  let (decks, (phase, player, limit), supply, numplayer, turn) = game in
-  let newdecks = ListUtil.change_to decks player (Deck.play (ListUtil.at decks player) card) in
-  let newgame = (newdecks,
-		 (phase, 
-		  player, 
-		  limit), 
-		 supply, 
-		 numplayer, 
-		 turn) in
-  CardEffect.onPlay card newgame
+  try
+    let (decks, (phase, player, limit), supply, numplayer, turn) = game in
+    let newdecks = ListUtil.change_to decks player (Deck.play (ListUtil.at decks player) card) in
+    let newgame = (newdecks,
+		           (phase, 
+		            player, 
+		            limit), 
+		           supply, 
+		           numplayer, 
+		           turn) in
+      CardEffect.onPlay card newgame
+  with 
+    | Card.Card_Not_Playable -> raise Card.Card_Not_Playable
 
 let get_ai_name player =
   match player with
@@ -90,63 +93,80 @@ let _ =
 	        begin
 		  match phase with
 		    | Phase.Action ->
-			if limit.action = 0 then assert false
-			else
-			  begin
-			    match cardtype_of_card card with
-			      | Cardtype.Action
-			      | Cardtype.Attack
-			      | Cardtype.Reaction ->
-				  loop
-				    (play
-				       card
-				       (decks,
-					(Phase.Action,
-					 player, 
-					 {action = limit.action-1; money = limit.money; buy = limit.buy}),
-					supply,
-					numplayer,
-					turn))
-			      | _ -> assert false
-			  end
-		    | Phase.Treasure -> 
-			begin
-			  match cardtype_of_card card with
-			    | Cardtype.Treasure x
-			      -> loop
-				(play
-				   card
-				   (decks,
-				    (Phase.Treasure,
-				     player, 
-				     {action = limit.action; money = limit.money; buy = limit.buy}),
-				    supply,
-				    numplayer,
-				    turn))
-			    | _ -> assert false
-			end
+		        begin
+		          try
+			        if limit.action = 0 then raise Card.Action_Limit_Exceeded
+			        else
+			          begin
+			            match cardtype_of_card card with
+			              | Cardtype.Action
+			              | Cardtype.Attack
+			              | Cardtype.Reaction ->
+				              loop
+				                (play
+				                   card
+				                   (decks,
+					                (Phase.Action,
+					                 player, 
+					                 limit),
+					                supply,
+					                numplayer,
+					                turn))
+			              | _ -> loop (decks, (Phase.next phase, player, limit), supply, numplayer, turn)
+			          end
+		          with
+		            | Card.Card_Not_Playable
+		            | Card.Action_Limit_Exceeded -> loop (decks, (Phase.next phase, player, limit), supply, numplayer, turn)
+		        end
+		    | Phase.Treasure ->
+		        begin
+			      try
+			        match cardtype_of_card card with
+			          | Cardtype.Treasure x
+			            -> loop
+				          (play
+				             card
+				             (decks,
+				              (Phase.Treasure,
+				               player, 
+				               {action = limit.action; money = limit.money; buy = limit.buy}),
+				              supply,
+				              numplayer,
+				              turn))
+			          | _ -> loop (decks, (Phase.next phase, player, limit), supply, numplayer, turn)
+			      with
+			        | Card.Card_Not_Playable
+			        | Deck.Hand_Not_Exist -> loop (decks, (Phase.next phase, player, limit), supply, numplayer, turn)
+		        end
 		    | Phase.Purchase ->
-			if limit.buy = 0 || 
-			   not (Supply.exist supply card) || 
-			   (cost_of_card card) > limit.money
-			then assert false
-			else 
-			  let newsupply = Supply.decrease supply card in
-			  let newdeck = Deck.obtain (ListUtil.at decks player) card in
-			    loop ((ListUtil.change_to
-				     decks
-				     player
-				     newdeck),
-				  (Phase.Purchase,
-				   player,
-				   { action = limit.action; 
-				     money = limit.money - (cost_of_card card);
-				     buy = limit.buy - 1}),
-				  newsupply,
-				  numplayer,
-				  turn)
-		    | _ -> assert false
-		end
+		        begin
+		          try
+			        if limit.buy = 0 || 
+			          not (Supply.exist supply card) || 
+			          (cost_of_card card) > limit.money
+			        then raise Supply.Supply_Not_Exist
+			        else 
+			          let newsupply = Supply.decrease supply card in
+			          let newdeck = Deck.obtain (ListUtil.at decks player) card in
+			            loop ((ListUtil.change_to
+				                 decks
+				                 player
+				                 newdeck),
+				              (Phase.Purchase,
+				               player,
+				               { action = limit.action; 
+				                 money = limit.money - (cost_of_card card);
+				                 buy = limit.buy - 1}),
+				              newsupply,
+				              numplayer,
+				              turn)
+		          with
+		            | Supply.Supply_Not_Exist
+		            | Deck.Hand_Not_Exist ->
+		                loop (decks, (Phase.next phase, player, limit), supply, numplayer, turn)
+		        end
+	        | _ -> assert false
+            end
     in
       try
         verbose := options;

@@ -88,3 +88,6 @@ let cardtype_of_card = function
   | Witch -> Cardtype.Action
   | Moneylender -> Cardtype.Action
   | Duke -> Cardtype.Victory 0
+
+exception Action_Limit_Exceeded
+exception Card_Not_Playable

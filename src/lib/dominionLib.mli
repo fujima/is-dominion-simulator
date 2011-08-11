@@ -12,6 +12,7 @@ module Deck :
     }
     type info_t = { d : int; h : int; p : int; t : int; }
     type hand_t = Card.t list
+    exception Hand_Not_Exist
     val init_deck : unit -> t
     val draw : t -> t
     val play : t -> Card.t -> t
@@ -31,6 +32,7 @@ module Deck :
 module Supply :
   sig
     type t = (Card.t * int) list
+    exception Supply_Not_Exist
     val create : 'a -> (Card.t * int) list
     val exist : ('a * 'b) list -> 'a -> bool
     val decrease : ('a * int) list -> 'a -> ('a * int) list

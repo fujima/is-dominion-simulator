@@ -23,6 +23,8 @@ module Deck =
     type info_t = {d : int; h : int; p : int; t : int}
     type hand_t = Card.t list
 
+    exception Hand_Not_Exist
+
     let init_deck () =
       let deck = ListUtil.shuffle 
 	[Copper; Copper; Copper; Copper; Copper; Copper; Copper; 
@@ -55,7 +57,7 @@ module Deck =
       try 
 	let newhand = ListUtil.remove set.hand card in
 	  {deck = set.deck; hand = newhand; playing = card::set.playing; trash = set.trash; aside = set.aside}
-      with _ -> assert false
+      with _ -> raise Hand_Not_Exist
 
     (* 獲得 *)
     let obtain set card =
@@ -80,13 +82,13 @@ module Deck =
     let discard set card =
       try
         obtain (trash set card) card
-      with _ -> assert false
+      with e -> raise e
 
     (* 手札からデッキトップに戻す *)
     let return_to_top set card =
       try
         put_on_top (trash set card) card
-      with _ -> assert false
+      with e -> raise e
 
     let cleanup set =
       Util.repeat 
@@ -158,6 +160,8 @@ module Supply =
   struct
     type t = (Card.t * int) list
 	
+    exception Supply_Not_Exist
+
     let create numplayer =
       [Copper  , 30;
        Silver  , 30;
@@ -183,12 +187,18 @@ module Supply =
 
     let rec decrease supply card =
       match supply with
-	| [] -> assert false
-	| (name,num)::xs -> if name = card then (name,(num-1))::xs else (name, num) :: (decrease xs card)
+	| [] -> raise Supply_Not_Exist
+	| (name,num)::xs ->
+	    if name = card then
+	      begin
+	        if num = 0 then raise Supply_Not_Exist
+	        else (name,(num-1))::xs
+	      end
+	    else (name, num) :: (decrease xs card)
 
     let rec lookup supply card =
       match supply with
-	| [] -> assert false
+	| [] -> raise Supply_Not_Exist
 	| (name,num)::xs -> if name = card then num else lookup xs card
 
     let endgame supply =
